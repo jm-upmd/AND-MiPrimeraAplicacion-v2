@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     TextView mCalculo;
@@ -28,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
         mbotonLimpiar = findViewById(R.id.btLimpiar);
         mNumeroEntrada = findViewById(R.id.numeroEntrada);
 
+        // Boton dividir inicialmente deshabilitado
+        mBotonDividir.setEnabled(false);
 
         // Implementación de listerners para recoger eventos sobre los
         // views anteriores
@@ -35,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         mBotonDuplicar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                duplicar();
+                multiplicar();
             }
         });
         mBotonDividir.setOnClickListener(new View.OnClickListener() {
@@ -53,34 +56,80 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dividir() {
-        int valor, numeroEntrada;
+        int valor; double numeroEntrada;
         try {
-            numeroEntrada = Integer.parseInt(mNumeroEntrada.getText().toString());
+            if(!mNumeroEntrada.getText().toString().equals(""))
+                numeroEntrada = Integer.parseInt(mNumeroEntrada.getText().toString());
+            else return;
+
             valor = Integer.parseInt(mCalculo.getText().toString());
-            // Si valor es 1 lo deja tal cual
-            valor = valor == 1 ? valor : valor / numeroEntrada;
-            mCalculo.setText(String.valueOf(valor));
-            mBotonDuplicar.setEnabled(valor*numeroEntrada <= Integer.MAX_VALUE);
-            mBotonDividir.setEnabled(valor > 1);
+
+            // Si el contador tiene valor 1 o si el cociente es 0 o mayor que el contador,
+            // entonces no hacemos nada
+
+            if (valor == 1 ) return;
+
+            if(numeroEntrada == 0) {
+                Toast.makeText(this,"Valor introducido no puede ser 0",Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(numeroEntrada > valor) {
+                Toast.makeText(this,"Valor introducido no puede ser mayor que contador",Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Actualiza contador con la división
+            mCalculo.setText(String.valueOf(valor/=numeroEntrada));
+
+            // Puede que el boton multiplicar estuviera deshabilitado. Lo habilitamos.
+
+            if(!mBotonDuplicar.isEnabled())
+                mBotonDuplicar.setEnabled(true);
+
+            // Deshabilita boton dividir si su nuevo valor es 1
+            if(valor == 1)
+                mBotonDividir.setEnabled(false);
 
         } catch (NumberFormatException e) {
             Log.e("MiAplicacion", "Error al convertir el valor en un entero", e);
         }
     }
 
-    void duplicar() {
-        int valor,numeroEntrada;
+    void multiplicar() {
+        int valor; double numeroEntrada;
         try {
-            numeroEntrada = Integer.parseInt(mNumeroEntrada.getText().toString());
+            if(!mNumeroEntrada.getText().toString().equals(""))
+                numeroEntrada = Double.parseDouble(mNumeroEntrada.getText().toString());
+            else return;
+
             valor = Integer.parseInt(mCalculo.getText().toString());
-            valor *= numeroEntrada;
-            mCalculo.setText(String.valueOf(valor));
 
-            // Si el proximo duplicado excede en rango de int deshabilita el boton duplicar
-            mBotonDuplicar.setEnabled(valor*(float)numeroEntrada <= Integer.MAX_VALUE);
+            // Si valor introducido es cero no hace nada e informa
+            if(numeroEntrada == 0) {
+                Toast.makeText(this,"Valor introducido no puede ser 0",Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            // Si el valor actual es mayor que uno habilita boton dividir
-            mBotonDividir.setEnabled(valor > 1);
+            // Si el numero introducido o su producto por el contador sobrepasa
+            // rango de un int no hace nada y muestra mensaje
+            if( (valor * numeroEntrada   > Integer.MAX_VALUE)
+                    || (numeroEntrada > Integer.MAX_VALUE)) {
+                Toast.makeText(this,"Valor introducido muy grande",Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // Actualiza contador
+            mCalculo.setText(String.valueOf(valor*=numeroEntrada));
+
+            // Si el contador ya tiene el máximo valor que puede representar deshabilita boton
+            // multiplicar
+
+            if(valor == Integer.MAX_VALUE)
+                mBotonDuplicar.setEnabled(false);
+
+            // Habilita boton dividir si necesario
+            if(!mBotonDividir.isEnabled() && valor > 1)
+                mBotonDividir.setEnabled(true);
 
 
 
